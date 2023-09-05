@@ -1,0 +1,679 @@
+
+<head>
+  <!-- Copyright - All rights reserved -- Author: Anupam Khosla 30 August 2023-->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Problem 1 and 2</title>
+  <style>
+    #root {
+      max-width: 1140px;
+      margin: auto;
+      padding: 100px 16px;
+    }
+  </style>
+
+  
+
+  <!-- React CDN and Babel compiler -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.10.3/babel.min.js" crossorigin></script>
+
+
+  <script >    
+
+    // Saving the whole family tree as a database MongoDB like document
+    // Intionally using global variable; Ideally I'd use a var local in the exported React component
+    // TREE var will hold all family tree data
+    // Nesting level will determine if a person is child/grandchild etc  
+    // Level 0, i.e root level is King Shan and his wife
+
+    let TREE = {
+      name:     "King Shan",
+      spouse:   "Queen Anga",
+      gender:   "M",
+      children: [
+        {
+          name:     "ish",
+          spouse:   "",
+          gender:   "M",
+          children: []
+        },
+        {
+          name:     "Chit",
+          spouse:   "Ambi",
+          gender:   "M",
+          children: [
+            {
+              name:   "Drita",
+              spouse: "Jaya",
+              gender: "M",
+              children: [
+                {
+                  name:   "Jata",
+                  spouse: "",
+                  gender: "M",
+                  children: []
+                },{
+                  name:    "Driya",
+                  spouse:  "Mnu",
+                  gender:  "F",
+                  children: []
+                }
+              ]
+            },{
+              name:     "Vrita",
+              spouse:   "",
+              gender:   "M",
+              children: []
+            }
+          ]
+        },
+        {
+          name:     "Vich",
+          spouse:   "Lika",
+          gender:  "M",
+          children: [
+            {
+              name:     "Vila",
+              spouse:   "Jnki",
+              gender:   "M",
+              children: [
+                {
+                  name:    "Lavnya",
+                  spouse:  "Gru",
+                  gender:  "F",
+                  children: []
+                }
+              ]
+            },{
+              name:     "Chika",
+              spouse:   "Kpila",
+              gender:   "F",
+              children: []
+            }
+          ]
+        },
+        {
+          name:   "Satya",
+          spouse: "Vyan",
+          gender: "F",
+          children: [
+            {
+              name:     "Satvy",
+              spouse:   "Asva",
+              gender:   "F",
+              children: []
+            },{
+              name:     "Savya",
+              spouse:   "Krpi",
+              gender:   "M",
+              children: [
+                {
+                  name:     "Kriya",
+                  spouse:   "",
+                  gender:   "M",
+                  children: []
+                }
+              ]
+            },{
+              name:     "Saayan",
+              spouse:   "Mina",
+              gender:   "M",
+              children: [
+                {
+                  name:     "Misa",
+                  spouse:   "",
+                  gender:   "M",
+                  children: []                
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+    //console.log(TREE); //use for debugging
+  </script>
+
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react,stage-3">
+
+
+    //Intentionally using react cdn, because the task asks for one zipped file, rather than a complete build
+    //using class based approach instead of react Hooks to show more traditional oop approach as asked in the task
+
+    class App extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = {
+          result: ""        
+        };
+        this.problemOneLogic = this.problemOneLogic.bind(this);  
+        this.name = React.createRef();
+        this.relation = React.createRef();     
+        this.problemTwoLogic = this.problemTwoLogic.bind(this);  
+        this.mother = React.createRef();
+        this.child = React.createRef();
+      }
+
+      //lifecycle methods
+      componentDidMount() {
+        //code
+      }
+
+      componentDidUpdate() {
+        //code
+      }
+
+      componentWillUnmount() {
+        //code
+      }
+
+      problemOneLogic(e) {
+
+        //all these functions are needed in local lexical scope only
+        function findRelation(name, relation) {
+          
+          if(relation.toUpperCase() == "Brothers".toUpperCase()) {  
+            return findBrothers(name);
+          } else if(relation.toUpperCase() == "Sisters".toUpperCase()) {
+            return findSisters(name);
+          } else if(relation.toUpperCase() == "Sons".toUpperCase()) {
+            return findSons(name);
+          } else if(relation.toUpperCase() == "Daughters".toUpperCase()) {
+            return findDaughters(name);
+          } else if(relation.toUpperCase() == "Siblings".toUpperCase()) {
+            return findSiblings(name);
+          } else if(relation.toUpperCase() == "Father".toUpperCase()) {
+            return findFather(name);
+          } else if(relation.toUpperCase() == "Mother".toUpperCase()) {
+            return findMother(name);
+          } else if(relation.toUpperCase() == "Parents".toUpperCase()) {
+            return findParents(name);
+          } else if(relation.toUpperCase() == "Grandfather".toUpperCase()) {
+            return findGrandfather(name);
+          } else if(relation.toUpperCase() == "Grandmother".toUpperCase()) {
+            return findGrandmother(name);
+          } else if(relation.toUpperCase() == "Children".toUpperCase()) {
+            return findChildren(name);
+          } else if(relation.toUpperCase() == "Grandchildren".toUpperCase()) {
+            return findGrandChildren(name);
+          } else {
+            return "Relation not in the list";
+          }
+        }
+
+
+        function findSons(name) {
+          let person = findPersonOrSpouse(name);
+          if(person) {
+            let sons = findSonsFromPerson(person);
+            if(sons.length > 0) {
+              return sons.join(", ");
+            } else {
+              return "No sons found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findSonsFromPerson(person) {
+          let sons = [];
+          if(person.children.length > 0) {
+            person.children.forEach(child => {
+              if(child.gender == "M") {
+                sons.push(child.name);
+              }
+            });
+          }
+          return sons;
+        }
+
+
+
+        function findDaughters(name) {
+          let person = findPersonOrSpouse(name);
+          if(person) {
+            let daughters = findDaughtersFromPerson(person);
+            if(daughters.length > 0) {
+              return daughters.join(", ");
+            } else {
+              return "No daughters found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findDaughtersFromPerson(person) {
+          let daughters = [];
+          if(person.children.length > 0) {
+            person.children.forEach(child => {
+              if(child.gender == "F") {
+                daughters.push(child.name);
+              }
+            });
+          }
+          return daughters;
+        }
+
+
+        function findParents(name) {
+          let person = findPerson(name);
+          if(person) {
+            let parents = findParentsFromPerson(person);
+            if(parents.length > 0) {
+              return parents.join(", ");
+            } else {
+              return "No parents found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findParentsFromPerson(person) {
+          let parents = [];
+          let parent = findParent(person);
+          if(parent) {
+            parents.push(parent.name);
+            if(parent.spouse) {
+              parents.push(parent.spouse);
+            }
+          }
+          return parents;
+        }
+
+
+
+        function findFather(name) {
+          let person = findPerson(name);
+          if(person) {
+            let parent = findParent(person);
+            if(parent) {
+              if(parent.gender == "M") {
+                return parent.name;
+              } else {
+                return parent.spouse; //Parent is a female; return their spouse
+              }
+            } else {
+              return "No father found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findMother(name) {
+          let person = findPerson(name);
+          if(person) {
+            let parent = findParent(person);
+            if(parent) {
+              if (parent.gender == "F") {
+                return parent.name;
+              } else {
+                return parent.spouse;
+              }
+            } else {
+              return "No mother found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+
+
+
+        function findGrandmother(name) {
+          let person = findPerson(name);
+          if(person) {
+            let parent = findParent(person);
+            if(parent) {              
+                let grandmother = findMother(parent.name);
+                //console.log(grandmother);
+                if(grandmother && grandmother != "No mother found") {
+                  return grandmother;
+                } else {
+                  return "No grandmother found";
+                }             
+            } else {
+              return "No parent; hence no grandmother found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findGrandfather(name) {
+          let person = findPerson(name);
+          if(person) {
+            let parent = findParent(person);
+            if(parent) {              
+                let grandfather = findFather(parent.name);
+                if(grandfather && grandfather != "No father found") {
+                  return grandfather;
+                } else {
+                  return "No grandfather found";
+                }             
+            } else {
+              return "No parent; hence no grandfather found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+
+
+
+        function findBrothers(name) {
+          let person = findPerson(name);
+          if(person) {
+            let parent = findParent(person);
+            if(parent) {
+              let brothers = findBrothersFromParent(parent, person);
+              if(brothers.length > 0) {
+                return brothers.join(", ");
+              } else {
+                return "No brothers found";
+              }
+            } else {
+              return "No brothers found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findBrothersFromParent(parent, person) {
+          //create function
+          let brothers = [];
+          if(parent.children.length > 0) {
+            //grab all male children name except the person
+            parent.children.forEach(child => {
+              if(child.gender.toUpperCase() == "M".toUpperCase() && child.name.toUpperCase() != person.name.toUpperCase()) {
+                brothers.push(child.name);
+              }
+            });
+          }
+          return brothers;
+        }
+
+
+
+        function findSisters(name) {
+          let person = findPerson(name);
+          if(person) {
+            let parent = findParent(person);
+            if(parent) {
+              let sisters = findSistersFromParent(parent, person);
+              if(sisters.length > 0) {
+                return sisters.join(", ");
+              } else {
+                return "No sisters found";
+              }
+            } else {
+              return "No sisters found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findSistersFromParent(parent, person) {
+          //create function
+          let sisters = [];
+          if(parent.children.length > 0) {
+            //grab all female children name except the person
+            parent.children.forEach(child => {
+              if(child.gender.toUpperCase() == "F".toUpperCase() && child.name.toUpperCase() != person.name.toUpperCase()) {
+                sisters.push(child.name);
+              }
+            });
+          }
+          return sisters;
+        }
+
+
+
+        function findSiblings(name) {          
+          //add findBrothers and findSisters
+          let person = findPerson(name);
+          if(person) {
+            let parent = findParent(person);
+            if(parent) {
+              let siblings = findBrothersFromParent(parent, person).concat(findSistersFromParent(parent, person));
+              return siblings.join(", ");
+            } else {
+              return "No siblings found";
+            }
+          } else {
+            return `Person with name: ${name2} isn't King Shan's descendant`;
+          }
+        }        
+
+
+        function findChildren(name) {
+          let person = findPersonOrSpouse(name);
+          if(person) {
+            let children = findChildrenFromPerson(person);
+            if(children.length > 0) {
+              return children.join(", ");
+            } else {
+              return "No children found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findChildrenFromPerson(person) {
+          let children = [];
+          if(person.children.length > 0) {
+            person.children.forEach(child => {
+              children.push(child.name);
+            });
+          }
+          return children;
+        }
+
+
+
+        function findGrandChildren(name) {
+          let person = findPersonOrSpouse(name);
+          if(person) {
+            let grandChildren = findGrandChildrenFromPerson(person);
+            if(grandChildren.length > 0) {
+              return grandChildren.join(", ");
+            } else {
+              return "No grand children found";
+            }
+          } else {
+            return `Person with name: ${name} isn't King Shan's descendant`;
+          }
+        }
+        function findGrandChildrenFromPerson(person) {
+          let grandChildren = [];
+          if(person.children.length > 0) {
+            person.children.forEach(child => {
+              if(child.children.length > 0) {
+                child.children.forEach(grandChild => {
+                  grandChildren.push(grandChild.name);
+                });
+              }
+            });
+          }
+          return grandChildren;
+        }
+
+
+
+        
+
+        function findPerson(name) { //tree traversal algorithm
+          let person = null;
+          let queue = [TREE];
+          while(queue.length > 0) { //recursive loop until first instance of person is found
+            let current = queue.shift(); //grab the whole level where key person might be and remove that level from queue
+            if(current.name.toUpperCase() == name.toUpperCase()) {
+              person = current; //current level as an object
+              break;
+            } else {
+              if(current.children.length > 0) {
+                queue.push(...current.children);
+              }
+            }
+          }
+          return person;
+        }
+        function findPersonOrSpouse(name) { //tree traversal algorithm
+          let person = null;
+          let queue = [TREE];
+          while(queue.length > 0) { //recursive loop until first instance of person is found
+            let current = queue.shift(); //grab the whole level where key person might be and remove that level from queue
+            if(current.name.toUpperCase() == name.toUpperCase() || current.spouse.toUpperCase() == name.toUpperCase()) {
+              person = current; //current level as an object
+              break;
+            } else {
+              if(current.children.length > 0) {
+                queue.push(...current.children);
+              }
+            }
+          }
+          return person;
+        }
+
+
+
+        function findParent(person) {
+          let parent = null;
+          let queue = [TREE];
+          while(queue.length > 0) { //similar recursive logic to find one level up of name
+            let current = queue.shift(); 
+            if(current.children.length > 0) {
+              let index = current.children.findIndex(child => child.name.toUpperCase() == person.name.toUpperCase());
+              if(index > -1) {
+                parent = current; //current level as an object
+                break;
+              } else {
+                queue.push(...current.children);
+              }
+            }
+          }
+          return parent;
+        }
+
+
+        e.preventDefault();
+        let name = this.name.current.value;
+        let relation = this.relation.current.value;
+        let result = "";
+        if(name && relation) {
+          result = findRelation(name, relation);
+        } else {
+          result = "Please enter both name and relation";
+        }
+        this.setState({result: result});
+      }
+
+      problemTwoLogic(e) {
+         // Intentionally redclaring findPersonOrSpouse in different scope for ease of use
+         function findPersonOrSpouse(name) { //tree traversal algorithm
+          let person = null;
+          let queue = [TREE];
+          while(queue.length > 0) { //recursive loop until first instance of person is found
+            let current = queue.shift(); //grab the whole level where key person might be and remove that level from queue
+            if(current.name.toUpperCase() == name.toUpperCase() || current.spouse.toUpperCase() == name.toUpperCase()) {
+              person = current; //current level as an object
+              break;
+            } else {
+              if(current.children.length > 0) {
+                queue.push(...current.children);
+              }
+            }
+          }
+          return person;
+        }
+
+        function addNewBorn(motherName, childName, childGender) {
+          let mother = findPersonOrSpouse(motherName);
+          if(mother) {
+            let child = {
+              name: childName,
+              spouse: "",
+              gender: childGender,
+              children: []
+            };
+            mother.children.push(child);
+            //console.log("New db json", TREE);
+            alert(`New born ${childName} added to ${motherName}'s family tree`);
+          } else {
+            alert(`Mother with name ${motherName} not found`);
+          }
+        }
+        e.preventDefault();
+        let motherName = this.mother.current.value;
+        let childName = this.child.current.value;
+        let childGender = null;
+        //if checked
+        if(document.querySelector('input[name="childGender"]:checked')) {
+          childGender = document.querySelector('input[name="childGender"]:checked').value;
+        } 
+        if(motherName && childName && childGender) {
+          //if a person already exist with same name as childName
+          let person = findPersonOrSpouse(childName);
+          if(person) {
+            alert(`Person with name ${childName} already exists`);
+          } else {
+            addNewBorn(motherName, childName, childGender);
+          }
+        } else {
+          alert("Please enter all three values");
+        }
+      }
+
+
+
+
+
+
+
+      //custom methods
+      render() {
+        return (
+          <div>
+            <h1>Problem 1 and 2 together </h1>
+            <label htmlFor="name1">Enter Person name </label>      
+            <input ref={this.name} type="text" id="name1" placeholder="E.g. Chit" />
+            <br/>
+            <p> Relationships allowed are "Brothers", "Sisters", "Sons", "Daughters", "Siblings", "Parents", "Father", "Mother", "Grandfather", "Grandmother", "Children" and "Grandchildren" </p>
+            <label htmlFor="relation1">Enter relationship </label>
+            <input ref={this.relation} type="text" id="relation1" placeholder="E.g. Brothers" />
+            <br/>
+            <button type="button" id="submit1" onClick={this.problemOneLogic} >Submit</button>
+            <br/>
+            <textarea value={this.state.result} id="output1" rows="4" cols="50" readOnly></textarea>          
+            <hr/>
+            <h2>Add a new born to the family tree</h2>
+            <label htmlFor="motherName">Enter Mother's name </label>
+            <input ref={this.mother} type="text" id="motherName" placeholder="E.g. Satya" />
+            <br/>
+            <label htmlFor="childName">Enter Child's name </label>
+            <input ref={this.child} type="text" id="childName" placeholder="E.g. Satvy" />
+            <br/>
+            <label htmlFor="childGender1">Boy</label>
+            <input type="radio" id="childGender1" name="childGender" value="M" />
+            <label htmlFor="childGender2">Girl</label>
+            <input type="radio" id="childGender2" name="childGender" value="F" />
+            <br/>
+            <button type="button" id="submit2" onClick={this.problemTwoLogic} >Submit</button>
+          </div>
+        )
+      }
+    }
+
+  
+    const root = ReactDOM.createRoot(document.getElementById("root"))
+    root.render(<App />);
+  </script>
+</body>
+
+</html>
